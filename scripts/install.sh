@@ -1,4 +1,3 @@
-# scripts/install.sh
 #!/bin/bash
 # Installation script for Reolink Stream Processor
 
@@ -90,3 +89,4 @@ echo ""
 echo "Next steps:"
 echo "1. Edit config.yaml with your camera settings"
 echo "2. Run: ./scripts/run.sh"
+echo "3. Or: source venv/bin/activate && python -m src.main"
