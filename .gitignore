@@ -1,3 +1,6 @@
+# .gitignore
+
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -18,3 +21,37 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs and output
+logs/
+*.log
+output/
+*.mp4
+*.avi
+
+# Config with sensitive data
+.env
+config_local.yaml
+
+# Testing artifacts  
+.pytest_cache/
+test_config.yaml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Core dumps
+core
+*.core
