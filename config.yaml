@@ -2,7 +2,7 @@ reolink:
   host: "192.168.10.50"  # Your camera's IP address
   username: "pickle"
   password: "robots_4_hire"
-  port: 80
+  port: 443
   channel: 0  # Camera channel (0 for first camera)
 
 stream:
