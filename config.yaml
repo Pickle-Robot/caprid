@@ -1,0 +1,30 @@
+reolink:
+  host: "192-168-10-50-via-6"  # IP address or hostname (e.g., camera.local, reolink-cam.mydomain.com)
+  username: "pickle"
+  password: "robots_4_hire"
+  port: 80
+  channel: 0  # Camera channel (0 for first camera)
+
+stream:
+  resolution: "HD"  # HD, FHD, 4K
+  fps: 15
+  timeout: 30
+  rtsp_transport: "tcp"  # tcp or udp
+
+processing:
+  save_frames: false
+  output_dir: "./output"
+  enable_motion_detection: true
+  motion_threshold: 1000
+  resize_width: 640
+  resize_height: 480
+  segment_recording:
+    enabled: true
+    buffer_seconds: 60
+    format: "mp4"
+    fps: 30
+    quality: "high"
+
+logging:
+  level: "INFO"
+  file: "logs/reolink_stream.log"

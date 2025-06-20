@@ -1,0 +1,14 @@
+# Run all tests
+python -m pytest tests/
+
+# Run only unit tests (no hardware needed)
+python -m pytest tests/unit/
+
+# Run only integration tests (requires camera)
+python -m pytest tests/integration/
+
+# Run specific test file
+python -m unittest tests.unit.test_stream
+
+# Run with coverage
+python -m pytest tests/ --cov=src/
