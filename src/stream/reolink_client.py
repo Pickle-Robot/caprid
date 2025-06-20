@@ -142,7 +142,15 @@ class ReolinkClient:
             
             try:
                 cap = cv2.VideoCapture(stream_url)
-                cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Reduce latency
+                
+                # Optimize settings to reduce h264 errors
+                cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Minimize buffer
+                cap.set(cv2.CAP_PROP_FPS, 15)        # Limit FPS to reduce errors
+                cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('H','2','6','4'))
+                
+                # Try to set transport protocol to TCP (more reliable than UDP)
+                cap.set(cv2.CAP_PROP_OPEN_TIMEOUT_MSEC, 5000)
+                cap.set(cv2.CAP_PROP_READ_TIMEOUT_MSEC, 5000)
                 
                 if cap.isOpened():
                     # Test if we can actually read a frame

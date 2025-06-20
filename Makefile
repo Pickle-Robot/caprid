@@ -1,4 +1,4 @@
-.PHONY: install run capture run-recording test docker dev clean help
+.PHONY: install run capture capture-stable run-recording test docker dev clean help
 
 help:	## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -14,6 +14,10 @@ run:	## Run the application
 capture:	## Capture 10 seconds of video
 	@echo "📹 Capturing 10 seconds of video from camera..."
 	@bash -c "source venv/bin/activate && PYTHONPATH=. python scripts/capture_10_seconds.py"
+
+capture-stable:	## Capture 10 seconds of video using stable script
+	@echo "📹 Capturing 10 seconds of video from camera..."
+	@bash -c "source venv/bin/activate && PYTHONPATH=. python scripts/capture_10_seconds_stable.py"
 
 run-recording:	## Run with recording examples
 	@chmod +x scripts/run_with_recording.sh
