@@ -13,79 +13,176 @@ def test_credentials(host, port, protocol, username, password):
     """Test specific credentials with given protocol/port"""
     auth_url = f"{protocol}://{host}:{port}/cgi-bin/api.cgi"
     
-    auth_data = {
-        "cmd": "Login",
-        "action": 0,
-        "param": {
-            "User": {
+    # Try different authentication formats
+    auth_formats = [
+        # Standard Reolink format
+        {
+            "cmd": "Login",
+            "action": 0,
+            "param": {
+                "User": {
+                    "userName": username,
+                    "password": password
+                }
+            }
+        },
+        # Alternative format 1
+        {
+            "cmd": "Login",
+            "param": {
+                "User": {
+                    "userName": username,
+                    "password": password
+                }
+            }
+        },
+        # Alternative format 2 (some cameras use this)
+        {
+            "cmd": "Login",
+            "param": {
                 "userName": username,
                 "password": password
             }
+        },
+        # Format 3 - direct credentials
+        {
+            "cmd": "Login",
+            "userName": username,
+            "password": password
         }
-    }
+    ]
     
     print(f"\n🔐 Testing: {protocol.upper()} on port {port}")
     print(f"   URL: {auth_url}")
     print(f"   Username: {username}")
     print(f"   Password: {'*' * len(password)}")
     
+    for i, auth_data in enumerate(auth_formats, 1):
+        print(f"\n   📝 Trying auth format {i}...")
+        
+        try:
+            response = requests.post(auth_url, json=[auth_data], timeout=10, verify=False)
+            print(f"   Status: {response.status_code}")
+            
+            if response.status_code == 200:
+                content_type = response.headers.get('content-type', '').lower()
+                
+                if 'application/json' in content_type or response.text.strip().startswith('['):
+                    try:
+                        result = response.json()
+                        print(f"   Response: {result}")
+                        
+                        if result and len(result) > 0:
+                            code = result[0].get("code")
+                            rsp_code = result[0].get("error", {}).get("rspCode") if result[0].get("error") else None
+                            
+                            if code == 0:
+                                if "Token" in result[0].get("value", {}):
+                                    token = result[0]["value"]["Token"]["name"]
+                                    print(f"   ✅ SUCCESS! Token: {token[:20]}...")
+                                    return True, f"Format {i}", token
+                                else:
+                                    print(f"   ✅ Login successful but no token in response")
+                                    return True, f"Format {i}", None
+                            else:
+                                error_messages = {
+                                    1: "Invalid username or password",
+                                    3: "User already logged in",
+                                    4: "User account locked",
+                                    5: "Invalid request format",
+                                    -1: "Command not supported"
+                                }
+                                
+                                # Handle specific error responses
+                                if rsp_code == -6:
+                                    print(f"   ⚠️ Camera requires session-based auth (rspCode: -6)")
+                                    # Try session-based authentication
+                                    return try_session_auth(host, port, protocol, username, password)
+                                else:
+                                    error_msg = error_messages.get(code, f"Unknown error code: {code}")
+                                    print(f"   ❌ Auth failed: {error_msg}")
+                                    
+                                    # If user already logged in, try logout first
+                                    if code == 3:
+                                        print("   🔄 Attempting logout first...")
+                                        if logout_user(host, port, protocol, username, password):
+                                            print("   🔄 Retrying login...")
+                                            return test_credentials(host, port, protocol, username, password)
+                    
+                    except ValueError as e:
+                        print(f"   ❌ JSON parse error: {e}")
+                        print(f"   Raw response: {response.text[:200]}...")
+                else:
+                    print(f"   ❌ Non-JSON response")
+            else:
+                print(f"   ❌ HTTP error: {response.status_code}")
+                
+        except requests.exceptions.SSLError as e:
+            print(f"   ❌ SSL Error: {e}")
+        except requests.exceptions.ConnectionError as e:
+            print(f"   ❌ Connection Error: {e}")
+        except requests.exceptions.Timeout:
+            print(f"   ❌ Timeout")
+        except Exception as e:
+            print(f"   ❌ Error: {e}")
+    
+    return False, None, None
+
+def try_session_auth(host, port, protocol, username, password):
+    """Try session-based authentication for cameras that require it"""
+    print(f"\n🔐 Attempting session-based authentication...")
+    
+    auth_url = f"{protocol}://{host}:{port}/cgi-bin/api.cgi"
+    session = requests.Session()
+    
+    # Step 1: Get session or initialize
+    init_data = {
+        "cmd": "GetDevInfo",
+        "action": 0
+    }
+    
     try:
-        response = requests.post(auth_url, json=[auth_data], timeout=10, verify=False)
-        print(f"   Status: {response.status_code}")
+        print("   📡 Step 1: Initializing session...")
+        response = session.post(auth_url, json=[init_data], timeout=10, verify=False)
+        print(f"   Init response: {response.status_code}")
+        
+        # Step 2: Try login with session
+        print("   📡 Step 2: Logging in with session...")
+        auth_data = {
+            "cmd": "Login",
+            "action": 0,
+            "param": {
+                "User": {
+                    "userName": username,
+                    "password": password
+                }
+            }
+        }
+        
+        response = session.post(auth_url, json=[auth_data], timeout=10, verify=False)
+        print(f"   Login response: {response.status_code}")
         
         if response.status_code == 200:
-            content_type = response.headers.get('content-type', '').lower()
-            print(f"   Content-Type: {content_type}")
-            
-            if 'application/json' in content_type or response.text.strip().startswith('['):
-                try:
-                    result = response.json()
-                    print(f"   Response: {result}")
-                    
-                    if result and len(result) > 0:
-                        code = result[0].get("code")
-                        if code == 0:
-                            token = result[0]["value"]["Token"]["name"]
-                            print(f"   ✅ SUCCESS! Token: {token[:20]}...")
-                            return True
-                        else:
-                            error_messages = {
-                                1: "Invalid username or password",
-                                3: "User already logged in (try logging out first)",
-                                4: "User account locked",
-                                5: "Invalid request format",
-                                -1: "Command not supported"
-                            }
-                            error_msg = error_messages.get(code, f"Unknown error code: {code}")
-                            print(f"   ❌ Auth failed: {error_msg}")
-                            
-                            # If user already logged in, try logout first
-                            if code == 3:
-                                print("   🔄 Attempting logout first...")
-                                if logout_user(host, port, protocol, username, password):
-                                    print("   🔄 Retrying login...")
-                                    return test_credentials(host, port, protocol, username, password)
+            try:
+                result = response.json()
+                print(f"   Response: {result}")
                 
-                except ValueError as e:
-                    print(f"   ❌ JSON parse error: {e}")
-                    print(f"   Raw response: {response.text[:200]}...")
-            else:
-                print(f"   ❌ Non-JSON response (likely HTML)")
-                if response.text.strip().startswith('<'):
-                    print("   💡 Got HTML - wrong endpoint or web interface")
-        else:
-            print(f"   ❌ HTTP error: {response.status_code}")
-            
-    except requests.exceptions.SSLError as e:
-        print(f"   ❌ SSL Error: {e}")
-    except requests.exceptions.ConnectionError as e:
-        print(f"   ❌ Connection Error: {e}")
-    except requests.exceptions.Timeout:
-        print(f"   ❌ Timeout")
+                if result and len(result) > 0 and result[0].get("code") == 0:
+                    token = result[0].get("value", {}).get("Token", {}).get("name")
+                    if token:
+                        print(f"   ✅ Session auth SUCCESS! Token: {token[:20]}...")
+                        return True, "Session-based", token
+                    else:
+                        print(f"   ✅ Session auth successful (no token)")
+                        return True, "Session-based", None
+                        
+            except ValueError as e:
+                print(f"   ❌ JSON parse error: {e}")
+        
     except Exception as e:
-        print(f"   ❌ Error: {e}")
+        print(f"   ❌ Session auth failed: {e}")
     
-    return False
+    return False, None, None
 
 def logout_user(host, port, protocol, username, password):
     """Attempt to logout user"""
@@ -142,12 +239,16 @@ def test_common_credentials(host):
         print(f"{'='*50}")
         
         for username, password in common_creds:
-            if test_credentials(host, port, protocol, username, password):
+            success, method, token = test_credentials(host, port, protocol, username, password)
+            if success:
                 print(f"\n🎉 FOUND WORKING CREDENTIALS!")
                 print(f"   Protocol: {protocol.upper()}")
                 print(f"   Port: {port}")
                 print(f"   Username: {username}")
                 print(f"   Password: {password if password else '(empty)'}")
+                print(f"   Method: {method}")
+                if token:
+                    print(f"   Token: {token[:20]}...")
                 return True
     
     return False
@@ -165,13 +266,17 @@ def interactive_credential_test(host):
         username = input("👤 Enter username [admin]: ").strip() or "admin"
         password = getpass.getpass("🔑 Enter password: ")
         
-        if test_credentials(host, 443, "https", username, password):
+        success, method, token = test_credentials(host, 443, "https", username, password)
+        if success:
             print(f"\n🎉 SUCCESS! Use these credentials:")
             print(f"   Host: {host}")
             print(f"   Port: 443")
             print(f"   Protocol: HTTPS")
             print(f"   Username: {username}")
             print(f"   Password: {password}")
+            print(f"   Method: {method}")
+            if token:
+                print(f"   Token: {token[:20]}...")
             break
         
         retry = input("\n🔄 Try different credentials? [y/N]: ").strip().lower()
