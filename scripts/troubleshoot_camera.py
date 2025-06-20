@@ -122,44 +122,79 @@ def test_reolink_api(host, port, username, password):
     try:
         response = requests.post(auth_url, json=[auth_data], timeout=10, verify=False)
         print(f"📡 HTTP Status: {response.status_code}")
+        print(f"📄 Content-Type: {response.headers.get('content-type', 'unknown')}")
+        print(f"📄 Response Length: {len(response.text)} characters")
         
         if response.status_code == 200:
-            try:
-                result = response.json()
-                print(f"📄 API Response: {result}")
-                
-                if result[0]["code"] == 0:
-                    token = result[0]["value"]["Token"]["name"]
-                    print(f"✅ Authentication successful! Token: {token[:20]}...")
-                    return True
-                else:
-                    error_code = result[0]["code"]
-                    print(f"❌ Authentication failed with code: {error_code}")
+            # Check if response is JSON
+            content_type = response.headers.get('content-type', '').lower()
+            
+            if 'application/json' in content_type or response.text.strip().startswith('['):
+                try:
+                    result = response.json()
+                    print(f"📄 API Response: {result}")
                     
-                    # Common error codes
-                    error_messages = {
-                        1: "Invalid username or password",
-                        3: "User already logged in",
-                        4: "User locked out",
-                        5: "Invalid request format"
-                    }
+                    if result and len(result) > 0 and result[0].get("code") == 0:
+                        token = result[0]["value"]["Token"]["name"]
+                        print(f"✅ Authentication successful! Token: {token[:20]}...")
+                        return True
+                    else:
+                        if result and len(result) > 0:
+                            error_code = result[0].get("code", "unknown")
+                            print(f"❌ Authentication failed with code: {error_code}")
+                            
+                            # Common error codes
+                            error_messages = {
+                                1: "Invalid username or password",
+                                3: "User already logged in",
+                                4: "User locked out",
+                                5: "Invalid request format",
+                                -1: "Command not found or malformed request"
+                            }
+                            
+                            if error_code in error_messages:
+                                print(f"💡 Error meaning: {error_messages[error_code]}")
+                        else:
+                            print("❌ Empty or malformed API response")
+                        
+                        return False
+                        
+                except ValueError as e:
+                    print(f"❌ Invalid JSON response: {e}")
+                    print(f"📄 Raw response (first 500 chars): {response.text[:500]}")
                     
-                    if error_code in error_messages:
-                        print(f"💡 Error meaning: {error_messages[error_code]}")
+                    # Check if it's HTML (common with wrong endpoint)
+                    if response.text.strip().startswith('<'):
+                        print("💡 Response appears to be HTML - wrong endpoint or web interface")
+                        print("💡 Try accessing the camera web interface directly in a browser")
                     
                     return False
-                    
-            except ValueError as e:
-                print(f"❌ Invalid JSON response: {e}")
-                print(f"📄 Raw response: {response.text[:500]}")
+            else:
+                print(f"❌ Response is not JSON (Content-Type: {content_type})")
+                print(f"📄 Raw response (first 500 chars): {response.text[:500]}")
+                
+                # Check if it's HTML
+                if response.text.strip().startswith('<'):
+                    print("💡 Response appears to be HTML - this might be the web interface")
+                    print("💡 The API endpoint might be different or disabled")
+                
+                return False
                 
         else:
             print(f"❌ HTTP error: {response.status_code}")
             print(f"📄 Response: {response.text[:500]}")
             
+    except requests.exceptions.ConnectionError as e:
+        print(f"❌ Connection error: {e}")
+        print("💡 Check if the IP address and port are correct")
+        
+    except requests.exceptions.Timeout:
+        print("❌ Request timeout")
+        print("💡 Camera might be slow to respond or unreachable")
+        
     except requests.exceptions.SSLError as e:
         print(f"🔒 SSL Error: {e}")
-        print("💡 Try modifying the camera to use HTTP instead of HTTPS")
+        print("💡 Try HTTPS instead of HTTP, or check certificate settings")
         
     except Exception as e:
         print(f"❌ API test failed: {e}")
