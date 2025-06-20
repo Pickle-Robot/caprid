@@ -11,9 +11,9 @@ run:	## Run the application
 	@chmod +x scripts/run.sh
 	@./scripts/run.sh
 
-capture:	## Capture 20 seconds of video
-	@echo "📹 Capturing 20 seconds of video from camera..."
-	@bash -c "source venv/bin/activate && python scripts/capture_20_seconds.py"
+capture:	## Capture 10 seconds of video
+	@echo "📹 Capturing 10 seconds of video from camera..."
+	@bash -c "source venv/bin/activate && python scripts/capture_10_seconds.py"
 
 run-recording:	## Run with recording examples
 	@chmod +x scripts/run_with_recording.sh
