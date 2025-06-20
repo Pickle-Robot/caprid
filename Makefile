@@ -1,7 +1,7 @@
-.PHONY: install run test clean docker help run-recording dev
+.PHONY: install run capture run-recording test docker dev clean help
 
 help:	## Show this help
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $1, $2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 install:	## Install dependencies and setup
 	@chmod +x scripts/install.sh
@@ -10,6 +10,10 @@ install:	## Install dependencies and setup
 run:	## Run the application  
 	@chmod +x scripts/run.sh
 	@./scripts/run.sh
+
+capture:	## Capture 20 seconds of video
+	@echo "📹 Capturing 20 seconds of video from camera..."
+	@source venv/bin/activate && python scripts/capture_20_seconds.py
 
 run-recording:	## Run with recording examples
 	@chmod +x scripts/run_with_recording.sh
