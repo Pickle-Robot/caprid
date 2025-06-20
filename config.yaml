@@ -1,5 +1,5 @@
 reolink:
-  host: "192-168-10-50-via-6"  # IP address or hostname (e.g., camera.local, reolink-cam.mydomain.com)
+  host: "192.168.10.50"  # Your camera's IP address
   username: "pickle"
   password: "robots_4_hire"
   port: 80
