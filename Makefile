@@ -1,13 +1,13 @@
-.PHONY: install run test clean docker help
+.PHONY: install run test clean docker help run-recording dev
 
 help:	## Show this help
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $1, $2}'
 
 install:	## Install dependencies and setup
 	@chmod +x scripts/install.sh
 	@./scripts/install.sh
 
-run:	## Run the application
+run:	## Run the application  
 	@chmod +x scripts/run.sh
 	@./scripts/run.sh
 
@@ -29,6 +29,7 @@ dev:	## Run in development mode (auto-restart)
 
 clean:	## Clean up generated files
 	@echo "🧹 Cleaning up..."
-	@rm -rf venv/ __pycache__/ .pytest_cache/ *.pyc
-	@rm -rf output/segments/* logs/*.log
+	@rm -rf __pycache__/ .pytest_cache/ *.pyc
+	@find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+	@rm -rf output/segments/* logs/*.log 2>/dev/null || true
 	@echo "✅ Cleanup complete"
