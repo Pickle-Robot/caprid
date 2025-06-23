@@ -1,4 +1,3 @@
-# scripts/capture_10_seconds_stable.py
 """
 Capture exactly 10 seconds of video with optimized settings for stability and real-time capture
 """
