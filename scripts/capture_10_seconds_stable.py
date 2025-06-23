@@ -21,7 +21,7 @@ def suppress_ffmpeg_logs():
     os.environ['OPENCV_FFMPEG_LOGLEVEL'] = '-8'  # Suppress all FFmpeg logs
     os.environ['OPENCV_LOG_LEVEL'] = 'ERROR'     # Only show OpenCV errors
 
-def measure_actual_fps(cap, sample_frames=30):
+def measure_actual_fps(cap, sample_frames=30, max_time=5.0):
     """Measure the actual frame rate by timing frame delivery"""
     logger = logging.getLogger(__name__)
     logger.info("📊 Measuring actual stream frame rate...")
@@ -30,22 +30,30 @@ def measure_actual_fps(cap, sample_frames=30):
     frames_received = 0
     
     for i in range(sample_frames):
+        frame_start = time.time()
         ret, frame = cap.read()
+        
         if ret and frame is not None:
             frames_received += 1
-        else:
-            # Small delay if frame read fails
-            time.sleep(0.01)
+        
+        # Safety check - don't spend more than max_time measuring
+        if time.time() - start_time > max_time:
+            logger.info(f"⏱️ Measurement timeout after {max_time}s")
+            break
+            
+        # Small delay if frame read fails
+        if not ret:
+            time.sleep(0.1)
     
     elapsed_time = time.time() - start_time
     
     if frames_received > 0 and elapsed_time > 0:
         actual_fps = frames_received / elapsed_time
         logger.info(f"📈 Measured FPS: {actual_fps:.2f} ({frames_received} frames in {elapsed_time:.2f}s)")
-        return round(actual_fps, 1)
+        return max(1.0, round(actual_fps, 1))  # Minimum 1 FPS
     else:
         logger.warning("⚠️ Could not measure FPS, using default")
-        return 10.0  # Conservative default
+        return 6.0  # Conservative default for sub-stream
 
 def main():
     # Suppress codec error messages
@@ -54,7 +62,7 @@ def main():
     setup_logging()
     logger = logging.getLogger(__name__)
     
-    print("📹 Starting 10-second video capture (stable mode with FPS detection)...")
+    print("📹 Starting 10-second video capture (stable mode with time-based recording)...")
     
     # Load configuration
     settings = Settings()
@@ -127,49 +135,66 @@ def main():
         logger.info(f"🎬 Using {stream_type} at {actual_fps} FPS")
         logger.info(f"⏱️  Start: {now.strftime('%H:%M:%S')}")
         
-        # Record for exactly 10 seconds based on actual FPS
-        start_time = time.time()
-        target_frames = int(actual_fps * 10)  # 10 seconds worth of frames at actual FPS
+        # Record for exactly 10 seconds using TIME-BASED approach
+        recording_start = time.time()
+        recording_duration = 10.0  # 10 seconds
         frames_written = 0
+        last_progress_update = 0
         
         print("🔴 Recording in progress...")
         
-        while frames_written < target_frames:
+        while True:
+            current_time = time.time()
+            elapsed = current_time - recording_start
+            
+            # Check if we've recorded for 10 seconds
+            if elapsed >= recording_duration:
+                print("\n⏱️  10 seconds completed!")
+                break
+            
+            # Try to read a frame with timeout
             ret, frame = cap.read()
-            if not ret or frame is None:
-                logger.warning(f"⚠️ Failed to read frame {frames_written + 1}, continuing...")
-                # Small delay to prevent busy loop
-                time.sleep(1.0 / actual_fps)
-                continue
+            if ret and frame is not None:
+                # Write frame to video
+                out.write(frame)
+                frames_written += 1
+            else:
+                # If frame read fails, wait a bit but don't stop recording
+                logger.debug(f"Frame read failed at {elapsed:.1f}s, continuing...")
+                time.sleep(0.05)  # 50ms delay
             
-            # Write frame to video
-            out.write(frame)
-            frames_written += 1
-            
-            # Show progress
-            elapsed = time.time() - start_time
-            progress = (frames_written / target_frames) * 100
-            remaining = max(0, 10 - elapsed)
-            
-            if frames_written % max(1, int(actual_fps)) == 0:  # Update every second
+            # Show progress every second
+            if int(elapsed) > last_progress_update:
+                remaining = max(0, recording_duration - elapsed)
+                progress = (elapsed / recording_duration) * 100
                 print(f"⏱️  {remaining:.1f}s remaining ({progress:.0f}%)...", end='\r')
-        
-        print("⏱️  Recording complete!     ")
+                last_progress_update = int(elapsed)
+            
+            # Safety timeout - force exit after 12 seconds
+            if elapsed > 12.0:
+                logger.warning("⚠️ Safety timeout reached, stopping recording")
+                break
         
         # Cleanup
         out.release()
-        elapsed_time = time.time() - start_time
+        actual_duration = time.time() - recording_start
         
         logger.info(f"✅ Video captured successfully!")
         logger.info(f"📁 File saved: {output_path}")
-        logger.info(f"⏱️  Recording duration: {elapsed_time:.1f} seconds")
+        logger.info(f"⏱️  Recording duration: {actual_duration:.1f} seconds")
         logger.info(f"🎬 Frames captured: {frames_written}")
-        logger.info(f"📈 Effective FPS: {frames_written / 10:.1f}")
+        
+        if frames_written > 0:
+            effective_fps = frames_written / actual_duration
+            logger.info(f"📈 Effective FPS: {effective_fps:.1f}")
         
         # Check file size
         if os.path.exists(output_path):
             file_size = os.path.getsize(output_path) / (1024 * 1024)  # MB
             logger.info(f"📊 File size: {file_size:.1f} MB")
+            
+            if file_size < 0.1:  # Less than 100KB probably means empty file
+                logger.warning("⚠️ Video file seems unusually small - check for recording issues")
         else:
             logger.warning("⚠️ File not found after recording")
             return 1
