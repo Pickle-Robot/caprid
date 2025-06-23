@@ -29,7 +29,7 @@ def main():
     setup_logging()
     logger = logging.getLogger(__name__)
     
-    print("📹 Starting 10-second video capture (stable mode - main stream optimized)...")
+    print("📹 Starting 10-second video capture (stable mode - duration-corrected)...")
     
     # Load configuration
     settings = Settings()
@@ -67,29 +67,36 @@ def main():
         
         logger.info(f"📺 Stream properties: {width}x{height}")
         
-        # Test frame reading first
-        logger.info("🔍 Testing frame capture...")
+        # Test frame reading and measure actual capture rate
+        logger.info("🔍 Testing frame capture and measuring rate...")
+        test_start = time.time()
         test_frames = 0
-        for i in range(10):
+        for i in range(20):  # Test for 20 frames
             ret, frame = cap.read()
             if ret and frame is not None:
                 test_frames += 1
+            time.sleep(0.01)  # Small delay between reads
+        test_duration = time.time() - test_start
         
-        if test_frames < 5:
-            logger.error(f"❌ Stream too unreliable - only got {test_frames}/10 test frames")
+        if test_frames < 10:
+            logger.error(f"❌ Stream too unreliable - only got {test_frames}/20 test frames")
             return 1
         
-        logger.info(f"✅ Stream test passed - {test_frames}/10 frames captured")
+        # Calculate actual capture rate
+        measured_fps = test_frames / test_duration
+        # Use the measured rate for encoding to get correct duration
+        encoding_fps = round(measured_fps, 1)
+        
+        logger.info(f"✅ Stream test passed - {test_frames}/20 frames captured")
+        logger.info(f"📊 Measured capture rate: {measured_fps:.1f} FPS")
+        logger.info(f"🎬 Will encode at: {encoding_fps} FPS for correct duration")
         
         # Generate filename with timestamp
         now = datetime.now()
         filename = f"capture_{now.strftime('%Y%m%d_%H%M%S')}_10sec_stable.mp4"
         output_path = f"./output/segments/{filename}"
         
-        # Use conservative FPS for encoding
-        encoding_fps = 8.0  # Conservative but should work for most streams
-        
-        # Create video writer
+        # Create video writer with measured FPS
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter(output_path, fourcc, encoding_fps, (width, height))
         
@@ -98,15 +105,17 @@ def main():
             return 1
         
         logger.info(f"📹 Recording 10 seconds to: {filename}")
-        logger.info(f"🎬 Using encoding FPS: {encoding_fps}")
         logger.info(f"⏱️  Start: {now.strftime('%H:%M:%S')}")
         
-        # Record for exactly 10 seconds with aggressive frame capture
+        # Record for exactly 10 seconds with measured frame timing
         recording_start = time.time()
         recording_duration = 10.0
         frames_written = 0
         frames_attempted = 0
         last_progress_update = 0
+        
+        # Calculate target frame interval based on measured FPS
+        target_interval = 1.0 / measured_fps
         
         print("🔴 Recording in progress...")
         
@@ -128,13 +137,11 @@ def main():
                 out.write(frame)
                 frames_written += 1
                 
-                # Small delay to prevent overwhelming the stream
-                time.sleep(0.01)  # 10ms delay
+                # Pace the frame capture to match measured rate
+                time.sleep(target_interval * 0.8)  # Slightly faster to account for processing time
             else:
                 # If frame read fails, smaller delay and continue
                 time.sleep(0.05)  # 50ms delay
-                if frames_attempted % 20 == 0:  # Log every 20 failed attempts
-                    logger.debug(f"Frame read issues at {elapsed:.1f}s (success rate: {frames_written/frames_attempted*100:.1f}%)")
             
             # Show progress every second
             if int(elapsed) > last_progress_update:
@@ -154,10 +161,11 @@ def main():
         logger.info(f"⏱️  Recording duration: {actual_duration:.1f} seconds")
         logger.info(f"🎬 Frames captured: {frames_written} (attempted: {frames_attempted})")
         logger.info(f"📈 Success rate: {success_rate:.1f}%")
+        logger.info(f"🎥 Expected video duration: ~{frames_written / encoding_fps:.1f} seconds")
         
         if frames_written > 0:
             effective_fps = frames_written / actual_duration
-            logger.info(f"📊 Effective FPS: {effective_fps:.1f}")
+            logger.info(f"📊 Effective capture FPS: {effective_fps:.1f}")
         
         # Check file size
         if os.path.exists(output_path):
@@ -166,14 +174,17 @@ def main():
             
             if file_size < 0.1:  # Less than 100KB
                 logger.warning("⚠️ Video file is very small - may indicate recording issues")
-                logger.info(f"💡 Try 'make capture' for the standard recording method")
                 return 1
             elif frames_written < 30:  # Very few frames
                 logger.warning("⚠️ Very few frames captured - stream may be unstable")
-                logger.info(f"💡 Try 'make capture' for the standard recording method")
                 return 1
             else:
-                logger.info(f"✅ Recording appears successful!")
+                expected_duration = frames_written / encoding_fps
+                if expected_duration > 12:
+                    logger.warning(f"⚠️ Video duration may be longer than expected ({expected_duration:.1f}s)")
+                    logger.info("💡 This usually means encoding FPS was set too low")
+                else:
+                    logger.info(f"✅ Recording appears successful! Expected duration: {expected_duration:.1f}s")
         else:
             logger.error("❌ File not found after recording")
             return 1
