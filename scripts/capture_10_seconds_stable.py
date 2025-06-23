@@ -1,6 +1,6 @@
 # scripts/capture_10_seconds_stable.py
 """
-Capture exactly 10 seconds of video with optimized settings for stability
+Capture exactly 10 seconds of video with optimized settings for stability and real-time capture
 """
 
 import logging
@@ -22,6 +22,14 @@ def suppress_ffmpeg_logs():
     os.environ['OPENCV_FFMPEG_LOGLEVEL'] = '-8'  # Suppress all FFmpeg logs
     os.environ['OPENCV_LOG_LEVEL'] = 'ERROR'     # Only show OpenCV errors
 
+def flush_buffer(cap, flush_frames=10):
+    """Flush old frames from the buffer to get real-time frames"""
+    for _ in range(flush_frames):
+        ret, frame = cap.read()
+        if not ret:
+            break
+    return ret, frame if ret else (False, None)
+
 def main():
     # Suppress codec error messages
     suppress_ffmpeg_logs()
@@ -29,7 +37,7 @@ def main():
     setup_logging()
     logger = logging.getLogger(__name__)
     
-    print("📹 Starting 10-second video capture (stable mode - duration-corrected)...")
+    print("📹 Starting 10-second video capture (stable mode - real-time optimized)...")
     
     # Load configuration
     settings = Settings()
@@ -48,17 +56,26 @@ def main():
         logger.error("❌ Failed to authenticate with camera")
         return 1
     
-    # Use main stream but with optimized settings for stability
-    logger.info("🎥 Using main stream with stability optimizations...")
+    # Use main stream but with real-time optimizations
+    logger.info("🎥 Using main stream with real-time optimizations...")
     
     cap = client.get_video_stream(config['reolink']['channel'])
     if not cap:
         logger.error("❌ Failed to get video stream")
         return 1
     
-    # Apply stability optimizations
-    cap.set(cv2.CAP_PROP_BUFFERSIZE, 3)  # Small buffer but not 1
-    cap.set(cv2.CAP_PROP_FPS, 10)        # Limit to 10 FPS for stability
+    # Apply real-time optimizations - CRITICAL for motion scenarios
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)    # Minimal buffer to prevent lag
+    cap.set(cv2.CAP_PROP_FPS, 15)          # Reasonable FPS limit
+    
+    # Additional real-time settings
+    try:
+        # Try to set additional properties for better real-time performance
+        cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('H','2','6','4'))
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)   # Force resolution
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)  # Force resolution
+    except:
+        pass  # These might not be supported, continue anyway
     
     try:
         # Get video properties
@@ -67,36 +84,50 @@ def main():
         
         logger.info(f"📺 Stream properties: {width}x{height}")
         
-        # Test frame reading and measure actual capture rate
-        logger.info("🔍 Testing frame capture and measuring rate...")
+        # Flush any existing buffer to start fresh
+        logger.info("🔄 Flushing stream buffer...")
+        flush_buffer(cap, 15)
+        
+        # Test frame reading and measure actual capture rate with motion consideration
+        logger.info("🔍 Testing frame capture rate...")
         test_start = time.time()
         test_frames = 0
-        for i in range(20):  # Test for 20 frames
+        consecutive_failures = 0
+        
+        for i in range(30):  # Test for more frames to get better average
             ret, frame = cap.read()
             if ret and frame is not None:
                 test_frames += 1
-            time.sleep(0.01)  # Small delay between reads
+                consecutive_failures = 0
+            else:
+                consecutive_failures += 1
+                if consecutive_failures > 5:
+                    logger.warning("Too many consecutive frame failures during test")
+                    break
+            
+            # No artificial delay - capture as fast as possible during test
+            
         test_duration = time.time() - test_start
         
-        if test_frames < 10:
-            logger.error(f"❌ Stream too unreliable - only got {test_frames}/20 test frames")
+        if test_frames < 15:
+            logger.error(f"❌ Stream too unreliable - only got {test_frames}/30 test frames")
             return 1
         
         # Calculate actual capture rate
         measured_fps = test_frames / test_duration
-        # Use the measured rate for encoding to get correct duration
-        encoding_fps = round(measured_fps, 1)
+        # Use a conservative encoding rate that should work with motion
+        encoding_fps = min(15.0, max(8.0, round(measured_fps * 0.8, 1)))
         
-        logger.info(f"✅ Stream test passed - {test_frames}/20 frames captured")
+        logger.info(f"✅ Stream test passed - {test_frames}/30 frames captured")
         logger.info(f"📊 Measured capture rate: {measured_fps:.1f} FPS")
-        logger.info(f"🎬 Will encode at: {encoding_fps} FPS for correct duration")
+        logger.info(f"🎬 Will encode at: {encoding_fps} FPS (conservative for motion)")
         
         # Generate filename with timestamp
         now = datetime.now()
         filename = f"capture_{now.strftime('%Y%m%d_%H%M%S')}_10sec_stable.mp4"
         output_path = f"./output/segments/{filename}"
         
-        # Create video writer with measured FPS
+        # Create video writer with conservative FPS
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter(output_path, fourcc, encoding_fps, (width, height))
         
@@ -107,17 +138,19 @@ def main():
         logger.info(f"📹 Recording 10 seconds to: {filename}")
         logger.info(f"⏱️  Start: {now.strftime('%H:%M:%S')}")
         
-        # Record for exactly 10 seconds with measured frame timing
+        # Flush buffer again right before recording to ensure real-time start
+        logger.info("🔄 Final buffer flush before recording...")
+        flush_buffer(cap, 10)
+        
+        # Record for exactly 10 seconds with real-time frame capture
         recording_start = time.time()
         recording_duration = 10.0
         frames_written = 0
         frames_attempted = 0
         last_progress_update = 0
+        last_flush_time = recording_start
         
-        # Calculate target frame interval based on measured FPS
-        target_interval = 1.0 / measured_fps
-        
-        print("🔴 Recording in progress...")
+        print("🔴 Recording in progress (real-time mode)...")
         
         while True:
             current_time = time.time()
@@ -128,6 +161,14 @@ def main():
                 print(f"\n⏱️  10 seconds completed! ({frames_written} frames captured)")
                 break
             
+            # Periodically flush buffer to prevent lag buildup during motion
+            if current_time - last_flush_time > 2.0:  # Every 2 seconds
+                # Quick mini-flush (just 2-3 frames) to stay current
+                for _ in range(3):
+                    cap.read()
+                last_flush_time = current_time
+                logger.debug(f"Buffer mini-flush at {elapsed:.1f}s")
+            
             frames_attempted += 1
             
             # Try to read a frame
@@ -137,11 +178,11 @@ def main():
                 out.write(frame)
                 frames_written += 1
                 
-                # Pace the frame capture to match measured rate
-                time.sleep(target_interval * 0.8)  # Slightly faster to account for processing time
+                # Minimal delay to prevent overwhelming but maintain real-time
+                time.sleep(0.01)  # 10ms
             else:
-                # If frame read fails, smaller delay and continue
-                time.sleep(0.05)  # 50ms delay
+                # If frame read fails, very short delay
+                time.sleep(0.02)  # 20ms delay
             
             # Show progress every second
             if int(elapsed) > last_progress_update:
@@ -167,24 +208,25 @@ def main():
             effective_fps = frames_written / actual_duration
             logger.info(f"📊 Effective capture FPS: {effective_fps:.1f}")
         
-        # Check file size
+        # Check file size and duration
         if os.path.exists(output_path):
             file_size = os.path.getsize(output_path) / (1024 * 1024)  # MB
             logger.info(f"📦 File size: {file_size:.1f} MB")
             
-            if file_size < 0.1:  # Less than 100KB
+            expected_duration = frames_written / encoding_fps
+            
+            if file_size < 0.1:
                 logger.warning("⚠️ Video file is very small - may indicate recording issues")
                 return 1
-            elif frames_written < 30:  # Very few frames
+            elif frames_written < 30:
                 logger.warning("⚠️ Very few frames captured - stream may be unstable")
                 return 1
+            elif expected_duration < 8.0:
+                logger.warning(f"⚠️ Video duration shorter than expected ({expected_duration:.1f}s)")
+                logger.info("💡 This may indicate buffer lag issues during motion")
+                logger.info("🎬 Video should still contain 10 seconds of real-time content")
             else:
-                expected_duration = frames_written / encoding_fps
-                if expected_duration > 12:
-                    logger.warning(f"⚠️ Video duration may be longer than expected ({expected_duration:.1f}s)")
-                    logger.info("💡 This usually means encoding FPS was set too low")
-                else:
-                    logger.info(f"✅ Recording appears successful! Expected duration: {expected_duration:.1f}s")
+                logger.info(f"✅ Recording successful! Duration: {expected_duration:.1f}s")
         else:
             logger.error("❌ File not found after recording")
             return 1
