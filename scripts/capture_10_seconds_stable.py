@@ -103,7 +103,6 @@ def main():
                 if consecutive_failures > 5:
                     logger.warning("Too many consecutive frame failures during test")
                     break
-            
             # No artificial delay - capture as fast as possible during test
             
         test_duration = time.time() - test_start
