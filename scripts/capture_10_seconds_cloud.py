@@ -32,7 +32,7 @@ def flush_buffer(cap, flush_frames=10):
 def upload_to_gcs(local_path, bucket_name, destination_blob_name):
     """Upload a file to Google Cloud Storage"""
     from google.cloud import storage
-    client = storage.Client()
+    client = storage.Client(project="pickle-devops-dev")
     bucket = client.bucket(bucket_name)
     blob = bucket.blob(destination_blob_name)
     blob.upload_from_filename(local_path)
