@@ -21,7 +21,7 @@ capture-stable:	## Capture 10 seconds of video using stable script
 
 cloud-capture:	## Capture 10 seconds of video and upload to GCS
 	@echo "☁️  Capturing 10 seconds of video and uploading to Google Cloud Storage..."
-	@bash -c "source venv/bin/activate && PYTHONPATH=. python scripts/capture_10_seconds_cloud.py"
+	@bash -c "export GOOGLE_CLOUD_PROJECT=pickle-devops-dev && source venv/bin/activate && PYTHONPATH=. python scripts/capture_10_seconds_cloud.py"
 
 run-recording:	## Run with recording examples
 	@chmod +x scripts/run_with_recording.sh
