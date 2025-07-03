@@ -238,20 +238,20 @@ def main():
             return 1
 
         # --- Google Cloud Storage upload section ---
-        # bucket_name = os.environ.get("GCS_BUCKET_NAME")
-        # if not bucket_name:
-        #     logger.error("❌ GCS_BUCKET_NAME environment variable not set.")
-        #     return 1
-        bucket_name = "caprid-videos-demo"
+        bucket_name = os.environ.get("GCS_BUCKET_NAME")
+        if not bucket_name:
+            logger.error("❌ GCS_BUCKET_NAME environment variable not set.")
+            return 1
+        # bucket_name = "caprid-videos-demo"
 
         destination_blob_name = f"captures/{filename}"
         logger.info(f"☁️ Uploading to GCS bucket: {bucket_name} as {destination_blob_name}")
         gcs_url = upload_to_gcs(output_path, bucket_name, destination_blob_name)
         logger.info(f"✅ Uploaded to {gcs_url}")
 
-        # --- Delete local file after upload (commented out) ---
-        # logger.info(f"🗑️ Deleting local file: {output_path}")
-        # os.remove(output_path)
+        # --- Delete local file after upload ---
+        logger.info(f"🗑️ Deleting local file: {output_path}")
+        os.remove(output_path)
 
         logger.info("🎉 Cloud capture complete.")
 

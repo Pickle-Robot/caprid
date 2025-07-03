@@ -21,7 +21,7 @@ capture-stable:	## Capture 10 seconds of video using stable script
 
 cloud-capture:	## Capture 10 seconds of video and upload to GCS
 	@echo "☁️  Capturing 10 seconds of video and uploading to Google Cloud Storage..."
-	@bash -c "export GOOGLE_CLOUD_PROJECT=pickle-devops-dev && source venv/bin/activate && PYTHONPATH=. python scripts/capture_10_seconds_cloud.py"
+	@bash -c "export GOOGLE_CLOUD_PROJECT=pickle-devops-dev && export GCS_BUCKET_NAME=caprid-videos-demo && source venv/bin/activate && PYTHONPATH=. python scripts/capture_10_seconds_cloud.py"
 
 run-recording:	## Run with recording examples
 	@chmod +x scripts/run_with_recording.sh
@@ -45,3 +45,23 @@ clean:	## Clean up generated files
 	@find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
 	@rm -rf output/segments/* logs/*.log 2>/dev/null || true
 	@echo "✅ Cleanup complete"
+
+start-buffer:  ## Start the rolling buffer service
+	sudo systemctl start rolling_buffer.service
+
+stop-buffer:   ## Stop the rolling buffer service
+	sudo systemctl stop rolling_buffer.service
+
+status-buffer: ## Show status of the rolling buffer service
+	sudo systemctl status rolling_buffer.service
+
+enable-buffer: ## Enable rolling buffer to start on boot
+	sudo systemctl enable rolling_buffer.service
+
+disable-buffer: ## Disable rolling buffer from starting on boot
+	sudo systemctl disable rolling_buffer.service
+
+install-buffer-service:  ## Install and reload the rolling buffer systemd service
+    chmod +x scripts/run_rolling_buffer.sh
+    sudo cp rolling_buffer.service /etc/systemd/system/rolling_buffer.service
+    sudo systemctl daemon-reload

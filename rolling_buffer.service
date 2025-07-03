@@ -1,0 +1,13 @@
+[Unit]
+Description=Rolling Video Buffer Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/pickle/src/pickle/caprid
+ExecStart=/home/pickle/src/pickle/caprid/scripts/run_rolling_buffer.sh
+Restart=on-failure
+User=pickle
+
+[Install]
+WantedBy=multi-user.target
