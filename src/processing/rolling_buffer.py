@@ -118,6 +118,9 @@ class RollingBuffer:
             raise RuntimeError(f"ffmpeg failed: {result.stderr.decode()}")
         return output_path
 
+if __name__ == "__main__":
+    RollingBuffer().start_recording()
+
 # Example usage:
 # from src.processing.rolling_buffer import RollingBuffer
 # buffer = RollingBuffer()
