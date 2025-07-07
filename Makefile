@@ -53,7 +53,7 @@ stop-buffer:   ## Stop the rolling buffer service
 	sudo systemctl stop rolling_buffer.service
 
 status-buffer: ## Show status of the rolling buffer service
-	sudo systemctl status rolling_buffer.service
+	- sudo systemctl status rolling_buffer.service
 
 enable-buffer: ## Enable rolling buffer to start on boot
 	sudo systemctl enable rolling_buffer.service
