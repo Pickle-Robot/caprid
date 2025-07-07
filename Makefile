@@ -62,6 +62,6 @@ disable-buffer: ## Disable rolling buffer from starting on boot
 	sudo systemctl disable rolling_buffer.service
 
 install-buffer-service:  ## Install and reload the rolling buffer systemd service
-    chmod +x scripts/run_rolling_buffer.sh
-    sudo cp rolling_buffer.service /etc/systemd/system/rolling_buffer.service
-    sudo systemctl daemon-reload
+	chmod +x scripts/run_rolling_buffer.sh
+	sudo cp rolling_buffer.service /etc/systemd/system/rolling_buffer.service
+	sudo systemctl daemon-reload
