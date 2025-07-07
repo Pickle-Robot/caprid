@@ -1,4 +1,4 @@
 #!/bin/bash
 cd "$(dirname "$0")/.."
-source venv/bin/activate
-PYTHONPATH=. python3 -m src.processing.rolling_buffer
+VENV_PYTHON="$(pwd)/venv/bin/python3"
+PYTHONPATH=. "$VENV_PYTHON" -m src.processing.rolling_buffer
