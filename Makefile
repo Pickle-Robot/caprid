@@ -66,11 +66,5 @@ install-buffer-service:  ## Install and reload the rolling buffer systemd servic
 	sudo cp rolling_buffer.service /etc/systemd/system/rolling_buffer.service
 	sudo systemctl daemon-reload
 
-extract-clip:  ## Extract a clip from the rolling buffer. Usage: make extract-clip START="2025-07-07T15:00:00" [DURATION=10] [OUT=output_clip.mp4]
-	@bash -c '\
-		args=""; \
-		[ -n "$$START" ] && args="$$args \"$$START\""; \
-		[ -n "$$DURATION" ] && args="$$args \"$$DURATION\""; \
-		[ -n "$$OUT" ] && args="$$args \"$$OUT\""; \
-		source venv/bin/activate && PYTHONPATH=. python scripts/extract_clip.py $$args \
-	'
+extract-clip:  ## Extract a 10s clip from the rolling buffer and upload to GCS. Usage: make extract-clip START="2025-07-07T15:00:00"
+	@bash -c "source venv/bin/activate && PYTHONPATH=. python scripts/extract_clip.py '$(START)'"

@@ -12,34 +12,21 @@ def upload_to_gcs(local_path, bucket_name, destination_blob_name):
     return f"gs://{bucket_name}/{destination_blob_name}"
 
 def usage():
-    print("Usage: python scripts/extract_clip.py <start_time:YYYY-MM-DDTHH:MM:SS> [duration_seconds] [output_path]")
+    print("Usage: python scripts/extract_clip.py <start_time:YYYY-MM-DDTHH:MM:SS>")
     sys.exit(1)
 
 if __name__ == "__main__":
-    argc = len(sys.argv)
-    if argc < 2 or argc > 4:
+    if len(sys.argv) != 2:
         usage()
     start_time_str = sys.argv[1]
     duration = 10
-    output_path = None
-
-    if argc >= 3:
-        try:
-            duration = int(sys.argv[2])
-        except Exception:
-            print("Invalid duration. Must be an integer (seconds).")
-            usage()
-    if argc == 4:
-        output_path = sys.argv[3]
-
     try:
         start_dt = datetime.strptime(start_time_str, "%Y-%m-%dT%H:%M:%S")
     except Exception:
         print("Invalid start_time format. Use YYYY-MM-DDTHH:MM:SS")
         usage()
 
-    if not output_path:
-        output_path = f"clip_{start_dt.strftime('%Y%m%d_%H%M%S')}_{duration}s.mp4"
+    output_path = f"clip_{start_dt.strftime('%Y%m%d_%H%M%S')}_{duration}s.mp4"
 
     buffer = RollingBuffer()
     try:
