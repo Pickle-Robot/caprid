@@ -17,7 +17,18 @@ echo "✅ Python version OK: $python_version"
 # Create virtual environment
 if [ ! -d "venv" ]; then
     echo "📦 Creating virtual environment..."
-    python3 -m venv venv
+        # ...existing code...
+    
+    # Install ffmpeg if not present
+    if ! command -v ffmpeg >/dev/null 2>&1; then
+        echo "🔧 Installing ffmpeg (required for video processing)..."
+        sudo apt-get update
+        sudo apt-get install -y ffmpeg
+    else
+        echo "✅ ffmpeg already installed."
+    fi
+    
+    # ...existing code... -m venv venv
 fi
 
 # Activate virtual environment
