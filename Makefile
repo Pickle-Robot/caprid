@@ -67,4 +67,4 @@ install-buffer-service:  ## Install and reload the rolling buffer systemd servic
 	sudo systemctl daemon-reload
 
 extract-clip:  ## Extract a clip from the rolling buffer. Usage: make extract-clip START="2025-07-07T15:00:00" DURATION=10 OUT=output_clip.mp4
-    @source venv/bin/activate && PYTHONPATH=. python scripts/extract_clip.py "$(START)" "$(DURATION)" "$(OUT)"
+	@source venv/bin/activate && PYTHONPATH=. python scripts/extract_clip.py "$(START)" "$(DURATION)" "$(OUT)"
