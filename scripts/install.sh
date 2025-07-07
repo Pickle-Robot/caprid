@@ -17,24 +17,16 @@ echo "✅ Python version OK: $python_version"
 # Create virtual environment
 if [ ! -d "venv" ]; then
     echo "📦 Creating virtual environment..."
-            # ...existing code...
-        
-        # Create virtual environment
-        if [ ! -d "venv" ]; then
-            echo "📦 Creating virtual environment..."
-            python3 -m venv venv
-        fi
-        
-        # Install ffmpeg if not present
-        if ! command -v ffmpeg >/dev/null 2>&1; then
-            echo "🔧 Installing ffmpeg (required for video processing)..."
-            sudo apt-get update
-            sudo apt-get install -y ffmpeg
-        else
-            echo "✅ ffmpeg already installed."
-        fi
-        
-        # ...existing code... -m venv venv
+    python3 -m venv venv
+fi
+
+# Install ffmpeg if not present
+if ! command -v ffmpeg >/dev/null 2>&1; then
+    echo "🔧 Installing ffmpeg (required for video processing)..."
+    sudo apt-get update
+    sudo apt-get install -y ffmpeg
+else
+    echo "✅ ffmpeg already installed."
 fi
 
 # Activate virtual environment
@@ -100,10 +92,22 @@ EOF
     echo "🔑 Please edit .env with your camera credentials!"
 fi
 
+# Install rolling buffer systemd service if not already present
+if [ ! -f /etc/systemd/system/rolling_buffer.service ]; then
+    echo "Installing rolling_buffer.service systemd unit..."
+    sudo cp rolling_buffer.service /etc/systemd/system/rolling_buffer.service
+    sudo systemctl daemon-reload
+else
+    echo "rolling_buffer.service already installed, skipping."
+fi
+
+# Ensure buffer runner script is executable
+chmod +x scripts/run_rolling_buffer.sh
+
 echo ""
 echo "✅ Installation complete!"
 echo ""
 echo "Next steps:"
 echo "1. Edit config.yaml with your camera settings"
 echo "2. Run: ./scripts/run.sh"
-echo "3. Or: source venv/bin/activate && python -m src.main"
+echo "3. Or: source venv/bin/activate && python"
