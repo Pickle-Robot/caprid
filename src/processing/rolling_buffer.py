@@ -7,7 +7,7 @@ from src.stream.reolink_client import ReolinkClient
 from src.config.settings import Settings
 
 class RollingBuffer:
-    def __init__(self, buffer_dir="output/segments", segment_duration=1, buffer_duration=600):
+    def __init__(self, buffer_dir="./rolling_buffer", segment_duration=1, buffer_duration=600):
         """
         Args:
             buffer_dir (str): Directory where segments are stored.
