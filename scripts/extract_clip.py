@@ -12,14 +12,20 @@ def upload_to_gcs(local_path, bucket_name, destination_blob_name):
     return f"gs://{bucket_name}/{destination_blob_name}"
 
 def usage():
-    print("Usage: python scripts/extract_clip.py <start_time:YYYY-MM-DDTHH:MM:SS>")
+    print("Usage: python scripts/extract_clip.py <start_time:YYYY-MM-DDTHH:MM:SS> [duration_seconds]")
     sys.exit(1)
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
+    if len(sys.argv) not in (2, 3):
         usage()
     start_time_str = sys.argv[1]
     duration = 10
+    if len(sys.argv) == 3:
+        try:
+            duration = int(sys.argv[2])
+        except Exception:
+            print("Invalid duration. Must be an integer (seconds).")
+            usage()
     try:
         start_dt = datetime.strptime(start_time_str, "%Y-%m-%dT%H:%M:%S")
     except Exception:
