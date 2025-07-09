@@ -21,7 +21,12 @@ capture-stable:	## Capture 10 seconds of video using stable script
 
 capture-cloud:	## Capture 10 seconds of video and upload to GCS
 	@echo "☁️  Capturing 10 seconds of video and uploading to Google Cloud Storage..."
-	@bash -c "export GOOGLE_CLOUD_PROJECT=pickle-devops-dev && export GCS_BUCKET_NAME=caprid-videos-demo && source venv/bin/activate && PYTHONPATH=. python scripts/capture_10_seconds_cloud.py"
+	@bash -c ' \
+	export GOOGLE_CLOUD_PROJECT=pickle-devops-dev && \
+	export GCS_BUCKET_NAME=caprid-videos-demo && \
+	source venv/bin/activate && \
+	PYTHONPATH=. python scripts/capture_10_seconds_cloud.py \
+	'
 
 run-recording:	## Run with recording examples
 	@chmod +x scripts/run_with_recording.sh
@@ -67,11 +72,13 @@ buffer-install-service:  ## Install and reload the rolling buffer systemd servic
 	sudo systemctl daemon-reload
 
 buffer-capture:  ## Extract a clip from the rolling buffer and upload to GCS. Usage: make buffer-capture 2025-07-07T15:00:00 [DURATION]
-	@START="$(word 2,$(MAKECMDGOALS))"; \
+	@bash -c ' \
+	START="$(word 2,$(MAKECMDGOALS))"; \
 	DURATION="$(word 3,$(MAKECMDGOALS))"; \
 	if [ -z "$$START" ]; then echo "Usage: make buffer-capture <START:YYYY-MM-DDTHH:MM:SS> [DURATION]"; exit 1; fi; \
 	if [ -z "$$DURATION" ]; then DURATION=10; fi; \
 	export GOOGLE_CLOUD_PROJECT=pickle-devops-dev && \
 	export GCS_BUCKET_NAME=caprid-videos-demo && \
 	source venv/bin/activate && \
-	PYTHONPATH=. python scripts/extract_clip.py "$$START" "$$DURATION"
+	PYTHONPATH=. python scripts/extract_clip.py "$$START" "$$DURATION" \
+'
