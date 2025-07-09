@@ -64,7 +64,6 @@ if __name__ == "__main__":
             try:
                 seg_start = datetime.strptime(ts_str, "%Y%m%d_%H%M%S")
                 seg_end = seg_start + timedelta(seconds=buffer.segment_duration)
-                # If segment overlaps with requested window, include it
                 if seg_end > start_dt and seg_start < end_dt:
                     seg_path = os.path.join(buffer.buffer_dir, fname)
                     needed_segments.append(seg_path)
@@ -74,15 +73,21 @@ if __name__ == "__main__":
                 continue
 
         if not needed_segments or missing_segments:
-            # Optionally, print available window:
             segments = buffer._list_segments()
             if segments:
                 first = segments[0][len("segment_"):-len(".mp4")]
                 last = segments[-1][len("segment_"):-len(".mp4")]
                 print(f"Available buffer window: {first} to {last}")
-            raise RuntimeError("Requested time is not in buffer window or required segments are missing.")
+            print("Error: Requested time is not in buffer window or required segments are missing.")
+            sys.exit(2)
 
         result = buffer.extract_clip(start_dt, duration=duration, output_path=output_path)
+
+        # Check output file size
+        if not os.path.exists(result) or os.path.getsize(result) < 1024:
+            print("Error: Extracted clip is empty or too small. Likely requested time is not in buffer window.")
+            sys.exit(2)
+
         print(f"Clip extracted to {result}")
         # Upload to GCS
         bucket_name = "caprid-videos-demo"
