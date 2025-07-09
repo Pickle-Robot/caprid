@@ -71,11 +71,11 @@ buffer-install-service:  ## Install and reload the rolling buffer systemd servic
 	sudo cp rolling_buffer.service /etc/systemd/system/rolling_buffer.service
 	sudo systemctl daemon-reload
 
-buffer-capture:  ## Extract a clip from the rolling buffer and upload to GCS. Usage: make buffer-capture 2025-07-07T15:00:00 [DURATION]
+buffer-capture:  ## Extract a clip from the rolling buffer and upload to GCS. Usage: make buffer-capture 2025-07-07T15:00:00 [DURATION_IN_SECONDS]
 	@bash -c ' \
 	START="$(word 2,$(MAKECMDGOALS))"; \
 	DURATION="$(word 3,$(MAKECMDGOALS))"; \
-	if [ -z "$$START" ]; then echo "Usage: make buffer-capture <START:YYYY-MM-DDTHH:MM:SS> [DURATION]"; exit 1; fi; \
+	if [ -z "$$START" ]; then echo "Usage: make buffer-capture <START:YYYY-MM-DDTHH:MM:SS> [DURATION_IN_SECONDS]"; exit 1; fi; \
 	if [ -z "$$DURATION" ]; then DURATION=10; fi; \
 	export GOOGLE_CLOUD_PROJECT=pickle-devops-dev && \
 	export GCS_BUCKET_NAME=caprid-videos-demo && \
