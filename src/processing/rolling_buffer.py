@@ -13,6 +13,10 @@ class RollingBuffer:
         self.buffer_minutes = buffer_minutes
         os.makedirs(self.buffer_dir, exist_ok=True)
 
+    @property
+    def buffer_duration(self):
+        return self.buffer_minutes * 60
+
     def _segment_filename(self, dt):
         return os.path.join(self.buffer_dir, f"segment_{dt.strftime('%Y%m%d_%H%M%S')}.mp4")
 
