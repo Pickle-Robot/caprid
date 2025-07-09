@@ -82,3 +82,6 @@ buffer-capture:  ## Extract a clip from the rolling buffer and upload to GCS. Us
 	source venv/bin/activate && \
 	PYTHONPATH=. python scripts/extract_clip.py "$$START" "$$DURATION" \
 '
+
+%:
+	@:
