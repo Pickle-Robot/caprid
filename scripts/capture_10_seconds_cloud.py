@@ -6,6 +6,7 @@ import logging
 import time
 import os
 import cv2
+import subprocess
 from datetime import datetime
 from src.config.settings import Settings
 from src.stream.reolink_client import ReolinkClient
@@ -30,13 +31,15 @@ def flush_buffer(cap, flush_frames=10):
     return ret, frame if ret else (False, None)
 
 def upload_to_gcs(local_path, bucket_name, destination_blob_name):
-    """Upload a file to Google Cloud Storage"""
-    from google.cloud import storage
-    client = storage.Client()
-    bucket = client.bucket(bucket_name)
-    blob = bucket.blob(destination_blob_name)
-    blob.upload_from_filename(local_path)
-    return f"gs://{bucket_name}/{destination_blob_name}"
+    """Upload a file to Google Cloud Storage using gcloud CLI"""
+    gcs_uri = f"gs://{bucket_name}/{destination_blob_name}"
+    result = subprocess.run(
+        ["gcloud", "storage", "cp", local_path, gcs_uri],
+        capture_output=True, text=True
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"gcloud upload failed: {result.stderr}")
+    return gcs_uri
 
 def main():
     # Suppress codec error messages

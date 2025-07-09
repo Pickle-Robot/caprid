@@ -3,17 +3,22 @@ import os
 import re
 from datetime import datetime, timedelta
 from src.processing.rolling_buffer import RollingBuffer
+import subprocess
 
 rolling_buffer = RollingBuffer()
 max_duration = rolling_buffer.buffer_duration
 
 def upload_to_gcs(local_path, bucket_name, destination_blob_name):
-    from google.cloud import storage
-    client = storage.Client(project="pickle-devops-dev")
-    bucket = client.bucket(bucket_name)
-    blob = bucket.blob(destination_blob_name)
-    blob.upload_from_filename(local_path)
-    return f"gs://{bucket_name}/{destination_blob_name}"
+    """Upload a file to Google Cloud Storage using gcloud CLI"""
+    gcs_uri = f"gs://{bucket_name}/{destination_blob_name}"
+    result = subprocess.run(
+        ["gcloud", "storage", "cp", local_path, gcs_uri],
+        capture_output=True, text=True
+    )
+    if result.returncode != 0:
+        print(f"gcloud upload failed: {result.stderr}")
+        sys.exit(2)
+    return gcs_uri
 
 def usage():
     print("Usage: python scripts/extract_clip.py <start_time:YYYY-MM-DDTHH:MM:SS> [duration (e.g. 10s, 3m, 2h)]")
