@@ -48,6 +48,11 @@ def print_buffer_window():
         last_segment = segment_files[-1][len("segment_"):-len(".mp4")]
         print(f"Available buffer window: {first_segment} to {last_segment}")
 
+def print_available_segments(segment_tuples):
+    print("Available segment start times in buffer:")
+    for segment_start_time, segment_path in segment_tuples:
+        print(f"  {segment_start_time.strftime('%Y-%m-%dT%H:%M:%S')}  ({os.path.basename(segment_path)})")
+
 if __name__ == "__main__":
     if len(sys.argv) not in (2, 3):
         usage()
@@ -73,6 +78,7 @@ if __name__ == "__main__":
     ]
     if not needed_segments:
         print_buffer_window()
+        print_available_segments(segment_tuples)
         print("Error: Requested time is not in buffer window.")
         sys.exit(2)
     needed_segments.sort()
@@ -80,6 +86,7 @@ if __name__ == "__main__":
     last_needed_end = needed_segments[-1][0] + timedelta(seconds=rolling_buffer.segment_duration)
     if first_needed_start > start_time or last_needed_end < end_time:
         print_buffer_window()
+        print_available_segments(segment_tuples)
         print("Error: Requested time is not fully covered by buffer window.")
         sys.exit(2)
     output_path = f"clip_{start_time.strftime('%Y%m%d_%H%M%S')}_{duration_seconds}s.mp4"
