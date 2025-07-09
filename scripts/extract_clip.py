@@ -1,5 +1,5 @@
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from src.processing.rolling_buffer import RollingBuffer
 import os
 import re
@@ -55,6 +55,33 @@ if __name__ == "__main__":
     output_path = f"clip_{start_dt.strftime('%Y%m%d_%H%M%S')}_{duration}s.mp4"
 
     try:
+        # Find all segments that overlap with the requested window
+        end_dt = start_dt + timedelta(seconds=duration)
+        needed_segments = []
+        missing_segments = []
+        for fname in buffer._list_segments():
+            ts_str = fname[len("segment_"):-len(".mp4")]
+            try:
+                seg_start = datetime.strptime(ts_str, "%Y%m%d_%H%M%S")
+                seg_end = seg_start + timedelta(seconds=buffer.segment_duration)
+                # If segment overlaps with requested window, include it
+                if seg_end > start_dt and seg_start < end_dt:
+                    seg_path = os.path.join(buffer.buffer_dir, fname)
+                    needed_segments.append(seg_path)
+                    if not os.path.exists(seg_path):
+                        missing_segments.append(seg_path)
+            except Exception:
+                continue
+
+        if not needed_segments or missing_segments:
+            # Optionally, print available window:
+            segments = buffer._list_segments()
+            if segments:
+                first = segments[0][len("segment_"):-len(".mp4")]
+                last = segments[-1][len("segment_"):-len(".mp4")]
+                print(f"Available buffer window: {first} to {last}")
+            raise RuntimeError("Requested time is not in buffer window or required segments are missing.")
+
         result = buffer.extract_clip(start_dt, duration=duration, output_path=output_path)
         print(f"Clip extracted to {result}")
         # Upload to GCS
