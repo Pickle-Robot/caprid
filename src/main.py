@@ -48,35 +48,6 @@ def frame_callback(frame):
     
     return True
 
-def example_segment_recording(stream_handler):
-    """Example of how to record segments with timestamps (historical only)"""
-    print("📹 Recording example segments...")
-    
-    # Example 1: Record a segment from 30 seconds ago to 10 seconds ago
-    now = datetime.now()
-    start_time = now - timedelta(seconds=30)
-    end_time = now - timedelta(seconds=10)
-    
-    recording_id = stream_handler.start_segment_recording(
-        start_time, end_time, "./output/segments/historical_segment.mp4"
-    )
-    
-    if recording_id:
-        print(f"✅ Recorded segment: {recording_id}")
-    
-    # Example 2: Record multiple historical segments
-    timestamps = [
-        (now - timedelta(seconds=60), now - timedelta(seconds=45)),  # 45-60 seconds ago
-        (now - timedelta(seconds=40), now - timedelta(seconds=25)),  # 25-40 seconds ago
-        (now - timedelta(seconds=20), now - timedelta(seconds=5))    # 5-20 seconds ago
-    ]
-    
-    recording_ids = stream_handler.record_segment_from_timestamps(
-        timestamps, "./output/segments"
-    )
-    
-    print(f"✅ Completed {len(recording_ids)} additional recordings")
-
 def main():
     global running
     
@@ -124,10 +95,6 @@ def main():
         
         # Wait for stream to initialize
         time.sleep(3)
-        
-        # Example of segment recording (uncomment to test)
-        # logger.info("📹 Testing segment recording...")
-        # example_segment_recording(stream_handler)
         
         logger.info("✅ Stream processing started successfully")
         logger.info("ℹ️ Press Ctrl+C to stop")

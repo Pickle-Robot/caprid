@@ -1,4 +1,4 @@
-.PHONY: install run capture capture-stable capture-cloud run-recording test docker dev clean help buffer-start buffer-stop buffer-status buffer-enable buffer-disable buffer-install-service buffer-capture
+.PHONY: install run capture-cloud run-recording test docker dev clean help buffer-start buffer-stop buffer-status buffer-enable buffer-disable buffer-install-service buffer-capture
 
 help:	## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -10,14 +10,6 @@ install:	## Install dependencies and setup
 run:	## Run the application  
 	@chmod +x scripts/run.sh
 	@./scripts/run.sh
-
-capture:	## Capture 10 seconds of video
-	@echo "📹 Capturing 10 seconds of video from camera..."
-	@bash -c "source venv/bin/activate && PYTHONPATH=. python scripts/capture_10_seconds.py"
-
-capture-stable:	## Capture 10 seconds of video using stable script
-	@echo "📹 Capturing 10 seconds of video from camera..."
-	@bash -c "source venv/bin/activate && PYTHONPATH=. python scripts/capture_10_seconds_stable.py"
 
 capture-cloud:	## Capture 10 seconds of video and upload to GCS
 	@echo "☁️  Capturing 10 seconds of video and uploading to Google Cloud Storage..."
