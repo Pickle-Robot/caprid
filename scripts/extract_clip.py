@@ -57,6 +57,7 @@ if __name__ == "__main__":
         print(f"Error: Requested duration ({duration_seconds}s) exceeds buffer maximum ({max_duration}s).")
         sys.exit(1)
 
+    # Gather all available segment start times
     segment_tuples = [
         (datetime.strptime(filename[len("segment_"):-len(".mp4")], "%Y%m%d_%H%M%S"),
          os.path.join(rolling_buffer.buffer_dir, filename))
@@ -64,18 +65,23 @@ if __name__ == "__main__":
         if filename.startswith("segment_") and filename.endswith(".mp4")
     ]
     segment_tuples.sort()
-    # Try to find the latest available segment <= requested start time
-    start_time = orig_start_time
+
+    # Logic for when the desired start segment doesn't exist
     segment_start_set = {t[0] for t in segment_tuples}
+    start_time = orig_start_time
     if start_time not in segment_start_set:
+        if not segment_tuples:
+            print("Error: No segments found in buffer. The buffer is empty.")
+            sys.exit(2)
         sorted_starts = [t[0] for t in segment_tuples]
-        while start_time not in segment_start_set and start_time >= sorted_starts[0]:
-            start_time -= timedelta(seconds=rolling_buffer.segment_duration)
-        if start_time < sorted_starts[0]:
+        # Find the latest available segment <= requested start time
+        candidates = [t for t in sorted_starts if t <= start_time]
+        if not candidates:
             print_buffer_window()
             print_available_segments(segment_tuples)
             print(f"Error: No available segment at or before requested start time ({orig_start_time.strftime('%Y-%m-%dT%H:%M:%S')}).")
             sys.exit(2)
+        start_time = candidates[-1]
         print(f"⚠️  Requested start time {orig_start_time.strftime('%Y-%m-%dT%H:%M:%S')} not available. Using closest earlier segment: {start_time.strftime('%Y-%m-%dT%H:%M:%S')}")
 
     end_time = start_time + timedelta(seconds=duration_seconds)
