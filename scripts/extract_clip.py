@@ -34,7 +34,7 @@ if __name__ == "__main__":
         print(f"Clip extracted to {result}")
         # Upload to GCS
         bucket_name = "caprid-videos-demo"
-        destination_blob_name = f"extracted/{os.path.basename(result)}"
+        destination_blob_name = f"buffer-captures/{os.path.basename(result)}"
         gcs_url = upload_to_gcs(result, bucket_name, destination_blob_name)
         print(f"✅ Uploaded to {gcs_url}")
     except Exception as e:

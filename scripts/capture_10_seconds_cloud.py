@@ -244,7 +244,7 @@ def main():
             return 1
         # bucket_name = "caprid-videos-demo"
 
-        destination_blob_name = f"captures/{filename}"
+        destination_blob_name = f"live-captures/{filename}"
         logger.info(f"☁️ Uploading to GCS bucket: {bucket_name} as {destination_blob_name}")
         gcs_url = upload_to_gcs(output_path, bucket_name, destination_blob_name)
         logger.info(f"✅ Uploaded to {gcs_url}")
