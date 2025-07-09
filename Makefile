@@ -67,4 +67,4 @@ buffer-install-service:  ## Install and reload the rolling buffer systemd servic
 	sudo systemctl daemon-reload
 
 buffer-capture:  ## Extract a clip from the rolling buffer and upload to GCS. Usage: make buffer-capture START="2025-07-07T15:00:00" [DURATION=10]
-    @bash -c "export GOOGLE_CLOUD_PROJECT=pickle-devops-dev && export GCS_BUCKET_NAME=caprid-videos-demo && source venv/bin/activate && PYTHONPATH=. python scripts/extract_clip.py '$(START)' $(DURATION)"
+	@bash -c "export GOOGLE_CLOUD_PROJECT=pickle-devops-dev && export GCS_BUCKET_NAME=caprid-videos-demo && source venv/bin/activate && PYTHONPATH=. python scripts/extract_clip.py '$(START)' $(DURATION)"
