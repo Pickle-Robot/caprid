@@ -65,11 +65,14 @@ if __name__ == "__main__":
         if filename.startswith("segment_") and filename.endswith(".mp4")
     ]
     segment_tuples.sort()
-    # Try to find the latest available segment <= requested start time
-    start_time = orig_start_time
+
+    # Logic for when the desired start segment doesn't exist
     segment_start_set = {t[0] for t in segment_tuples}
+    start_time = orig_start_time
     if start_time not in segment_start_set:
-        # Only build a sorted list if we need to step back
+        if not segment_tuples:
+            print("Error: No segments found in buffer. The buffer is empty.")
+            sys.exit(2)
         sorted_starts = [t[0] for t in segment_tuples]
         while start_time not in segment_start_set and start_time >= sorted_starts[0]:
             start_time -= timedelta(seconds=rolling_buffer.segment_duration)
