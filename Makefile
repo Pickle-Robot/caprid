@@ -1,4 +1,4 @@
-.PHONY: install run capture capture-stable capture-cloud run-recording test docker dev clean help buffer-start buffer-stop buffer-status buffer-enable buffer-disable buffer-install-service extract-clip
+.PHONY: install run capture capture-stable capture-cloud run-recording test docker dev clean help buffer-start buffer-stop buffer-status buffer-enable buffer-disable buffer-install-service buffer-capture
 
 help:	## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -66,5 +66,5 @@ buffer-install-service:  ## Install and reload the rolling buffer systemd servic
 	sudo cp rolling_buffer.service /etc/systemd/system/rolling_buffer.service
 	sudo systemctl daemon-reload
 
-extract-clip:  ## Extract a 10s clip from the rolling buffer and upload to GCS. Usage: make extract-clip START="2025-07-07T15:00:00"
+buffer-capture:  ## Extract a 10s clip from the rolling buffer and upload to GCS. Usage: make buffer-capture START="2025-07-07T15:00:00"
 	@bash -c "export GOOGLE_CLOUD_PROJECT=pickle-devops-dev && export GCS_BUCKET_NAME=caprid-videos-demo && source venv/bin/activate && PYTHONPATH=. python scripts/extract_clip.py '$(START)'"
