@@ -58,7 +58,6 @@ if __name__ == "__main__":
         # Find all segments that overlap with the requested window
         end_dt = start_dt + timedelta(seconds=duration)
         needed_segments = []
-        missing_segments = []
         for fname in buffer._list_segments():
             ts_str = fname[len("segment_"):-len(".mp4")]
             try:
@@ -66,21 +65,35 @@ if __name__ == "__main__":
                 seg_end = seg_start + timedelta(seconds=buffer.segment_duration)
                 if seg_end > start_dt and seg_start < end_dt:
                     seg_path = os.path.join(buffer.buffer_dir, fname)
-                    needed_segments.append(seg_path)
-                    if not os.path.exists(seg_path):
-                        missing_segments.append(seg_path)
+                    needed_segments.append((seg_start, seg_path))
             except Exception:
                 continue
 
-        if not needed_segments or missing_segments:
+        # Check if the needed segments fully cover the requested window
+        if not needed_segments:
             segments = buffer._list_segments()
             if segments:
                 first = segments[0][len("segment_"):-len(".mp4")]
                 last = segments[-1][len("segment_"):-len(".mp4")]
                 print(f"Available buffer window: {first} to {last}")
-            print("Error: Requested time is not in buffer window or required segments are missing.")
+            print("Error: Requested time is not in buffer window.")
             sys.exit(2)
 
+        # Check that the first segment starts before or at start_dt and the last segment ends after or at end_dt
+        needed_segments.sort()
+        first_seg_start = needed_segments[0][0]
+        last_seg_end = needed_segments[-1][0] + timedelta(seconds=buffer.segment_duration)
+        if first_seg_start > start_dt or last_seg_end < end_dt:
+            segments = buffer._list_segments()
+            if segments:
+                first = segments[0][len("segment_"):-len(".mp4")]
+                last = segments[-1][len("segment_"):-len(".mp4")]
+                print(f"Available buffer window: {first} to {last}")
+            print("Error: Requested time is not fully covered by buffer window.")
+            sys.exit(2)
+
+        # Only pass the segment paths to extract_clip
+        segment_paths = [seg_path for _, seg_path in needed_segments]
         result = buffer.extract_clip(start_dt, duration=duration, output_path=output_path)
 
         # Check output file size
