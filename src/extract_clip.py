@@ -72,6 +72,7 @@ if __name__ == "__main__":
     if start_time not in segment_start_set:
         if not segment_tuples:
             print("Error: No segments found in buffer. The buffer is empty.")
+            print_buffer_window()
             sys.exit(2)
         sorted_starts = [t[0] for t in segment_tuples]
         # Find the latest available segment <= requested start time
