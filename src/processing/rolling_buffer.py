@@ -3,8 +3,8 @@ import cv2
 import time
 import subprocess
 from datetime import datetime, timedelta
-from src.stream.reolink_client import ReolinkClient
-from src.config.settings import Settings
+from stream.reolink_client import ReolinkClient
+from config.settings import Settings
 
 class RollingBuffer:
     def __init__(self, buffer_dir="./rolling_buffer", segment_duration=1, buffer_duration=600):

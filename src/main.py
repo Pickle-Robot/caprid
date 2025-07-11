@@ -3,10 +3,10 @@ import time
 import signal
 import sys
 from datetime import datetime, timedelta
-from src.config.settings import Settings
-from src.stream.reolink_client import ReolinkClient
-from src.stream.stream_handler import StreamHandler
-from src.processing.video_processor import VideoProcessor
+from config.settings import Settings
+from stream.reolink_client import ReolinkClient
+from stream.stream_handler import StreamHandler
+from processing.video_processor import VideoProcessor
 
 # Global flag for graceful shutdown
 running = True
