@@ -69,8 +69,8 @@ buffer-capture:  ## Extract a clip from the rolling buffer and upload to GCS. Us
 	DURATION="$(word 3,$(MAKECMDGOALS))"; \
 	if [ -z "$$START" ]; then echo "Usage: make buffer-capture <START:YYYY-MM-DDTHH:MM:SS> [DURATION_IN_SECONDS]"; exit 1; fi; \
 	if [ -z "$$DURATION" ]; then DURATION=10; fi; \
-	export GOOGLE_CLOUD_PROJECT=pickle-devops-dev && \
-	export GCS_BUCKET_NAME=caprid-videos-demo && \
+	export GOOGLE_CLOUD_PROJECT=pickle-terraform-dev && \
+	export GCS_BUCKET_NAME=customer1-videos && \
 	source venv/bin/activate && \
 	PYTHONPATH=. python scripts/extract_clip.py "$$START" "$$DURATION" \
 '

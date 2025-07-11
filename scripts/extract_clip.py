@@ -3,7 +3,6 @@ import os
 import re
 from datetime import datetime, timedelta
 from src.processing.rolling_buffer import RollingBuffer
-import subprocess
 
 rolling_buffer = RollingBuffer()
 max_duration = rolling_buffer.buffer_duration

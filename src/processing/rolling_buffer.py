@@ -3,11 +3,22 @@ import cv2
 import time
 import subprocess
 from datetime import datetime, timedelta
-from src.stream.reolink_client import ReolinkClient
-from src.config.settings import Settings
+from stream.reolink_client import ReolinkClient
+from config.settings import Settings
 
 class RollingBuffer:
-    def __init__(self, buffer_dir="./rolling_buffer", segment_duration=1, buffer_duration=600):
+    DEFAULT_BUFFER_DURATION = 600  # 10 minutes in seconds
+
+    @classmethod
+    def get_buffer_duration(cls) -> int:
+        """Return the default buffer duration in seconds.
+        
+        Returns:
+            int: The buffer duration in seconds
+        """
+        return cls.DEFAULT_BUFFER_DURATION
+
+    def __init__(self, buffer_dir="./rolling_buffer", segment_duration=1, buffer_duration=DEFAULT_BUFFER_DURATION):
         """
         Args:
             buffer_dir (str): Directory where segments are stored.
