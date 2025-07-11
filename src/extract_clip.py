@@ -2,11 +2,11 @@ import sys
 import os
 import re
 from datetime import datetime, timedelta
-from processing.rolling_buffer import RollingBuffer
+from src.processing.rolling_buffer import RollingBuffer
 import subprocess
 
 rolling_buffer = RollingBuffer()
-max_duration = rolling_buffer.buffer_duration
+max_duration = rolling_buffer.max_seconds
 
 def upload_to_gcs(local_path, bucket_name, destination_blob_name):
     """Upload a file to Google Cloud Storage using gcloud CLI"""
