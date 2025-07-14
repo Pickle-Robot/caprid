@@ -126,5 +126,10 @@ if __name__ == "__main__":
         sys.exit(2)
         
     print(f"Clip extracted to {result_path}")
-    gcs_url = upload_to_gcs(result_path, "caprid-videos-demo", f"buffer-captures/{os.path.basename(result_path)}")
+    bucket_name = os.environ.get('GCS_BUCKET_NAME', 'caprid-videos-demo')
+    project = os.environ.get('GOOGLE_CLOUD_PROJECT', 'pickle-devops-dev')
+    os.environ['GOOGLE_CLOUD_PROJECT'] = project  # Ensure gcloud uses the right project
+    
+    print(f"Using GCS bucket: {bucket_name} in project: {project}")
+    gcs_url = upload_to_gcs(result_path, bucket_name, f"buffer-captures/{os.path.basename(result_path)}")
     print(f"✅ Uploaded to {gcs_url}")
