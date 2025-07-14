@@ -5,7 +5,8 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=/home/pickle/src/pickle/caprid
-ExecStart=/home/pickle/src/pickle/caprid/scripts/run_rolling_buffer.sh
+Environment=PYTHONPATH=/home/pickle/src/pickle/caprid/src
+ExecStart=/home/pickle/src/pickle/caprid/venv/bin/python -m processing.rolling_buffer
 Restart=on-failure
 User=pickle
 
