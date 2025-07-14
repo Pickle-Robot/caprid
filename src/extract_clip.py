@@ -67,14 +67,12 @@ if __name__ == "__main__":
         print("Invalid center_time format. Use YYYY-MM-DDTHH:MM:SS")
         usage()
     
-    duration_seconds = 21 # we prefer a multiple of 3, but we can round if not.
-    # Change distribution to 1/3 before and 2/3 after
-    before_duration = duration_seconds // 3  # 1/3 of duration before
-    after_duration = duration_seconds - before_duration  # 2/3 of duration after
+    duration_seconds = 20
+    half_duration = duration_seconds // 2
 
     # Calculate start and end times
-    start_time = center_time - timedelta(seconds=before_duration)
-    end_time = center_time + timedelta(seconds=after_duration)
+    start_time = center_time - timedelta(seconds=half_duration)
+    end_time = center_time + timedelta(seconds=half_duration)
 
     # If end_time is in the future, we need to wait
     now = datetime.now()
