@@ -1,4 +1,4 @@
-.PHONY: install run capture-cloud run-recording test docker dev clean help buffer-start buffer-stop buffer-status buffer-enable buffer-disable buffer-install-service buffer-capture
+.PHONY: install run capture-cloud run-recording test docker dev clean help buffer-start buffer-stop buffer-restart buffer-status buffer-enable buffer-disable buffer-install-service buffer-capture
 
 help:	## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -50,6 +50,11 @@ buffer-start:  ## Start the rolling buffer service
 
 buffer-stop:   ## Stop the rolling buffer service
 	sudo systemctl stop rolling_buffer.service
+
+buffer-restart: ## Restart the rolling buffer service
+    echo "🔄 Restarting rolling buffer service..."
+    sudo systemctl restart rolling_buffer.service
+    echo "✅ Service restarted"
 
 buffer-status: ## Show status of the rolling buffer service
 	- sudo systemctl status rolling_buffer.service
