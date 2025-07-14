@@ -118,7 +118,7 @@ if __name__ == "__main__":
         print_available_segments(segment_tuples)
         print("Error: Requested time window is not fully covered by buffer window.")
         sys.exit(2)
-    output_path = f"clip_{start_time.strftime('%Y%m%d_%H%M%S')}_{duration_seconds}s.mp4"
+    output_path = f"clip_{center_time.strftime('%Y%m%d_%H%M%S')}_{duration_seconds}s.mp4"
     result_path = rolling_buffer.extract_clip(start_time, duration=duration_seconds, output_path=output_path)
     
     if not os.path.exists(result_path) or os.path.getsize(result_path) < 1024:
