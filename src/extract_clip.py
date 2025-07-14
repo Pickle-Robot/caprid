@@ -68,11 +68,13 @@ if __name__ == "__main__":
         usage()
     
     duration_seconds = 20
-    half_duration = duration_seconds // 2
+    # Change distribution to 1/3 before and 2/3 after
+    before_duration = duration_seconds // 3  # 1/3 of duration before
+    after_duration = duration_seconds - before_duration  # 2/3 of duration after
 
     # Calculate start and end times
-    start_time = center_time - timedelta(seconds=half_duration)
-    end_time = center_time + timedelta(seconds=half_duration)
+    start_time = center_time - timedelta(seconds=before_duration)
+    end_time = center_time + timedelta(seconds=after_duration)
 
     # If end_time is in the future, we need to wait
     now = datetime.now()
