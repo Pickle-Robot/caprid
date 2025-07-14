@@ -14,8 +14,8 @@ run:	## Run the application
 capture-cloud:	## Capture 10 seconds of video and upload to GCS
 	@echo "☁️  Capturing 10 seconds of video and uploading to Google Cloud Storage..."
 	@bash -c ' \
-	export GOOGLE_CLOUD_PROJECT=pickle-devops-dev && \
-	export GCS_BUCKET_NAME=caprid-videos-demo && \
+	export GOOGLE_CLOUD_PROJECT=pickle-terraform-dev && \
+	export GCS_BUCKET_NAME=customer1-videos && \
 	source venv/bin/activate && \
 	PYTHONPATH=. python scripts/capture_10_seconds_cloud.py \
 	'
