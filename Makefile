@@ -41,6 +41,7 @@ clean:	## Clean up generated files
 	@rm -rf __pycache__/ .pytest_cache/ *.pyc
 	@find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
 	@rm -rf output/segments/* logs/*.log 2>/dev/null || true
+	@rm -rf *.egg-info/ src/*.egg-info/ 2>/dev/null || true
 	@echo "✅ Cleanup complete"
 
 buffer-start:  ## Start the rolling buffer service
