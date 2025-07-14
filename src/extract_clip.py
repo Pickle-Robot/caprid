@@ -67,8 +67,8 @@ if __name__ == "__main__":
         print("Invalid center_time format. Use YYYY-MM-DDTHH:MM:SS")
         usage()
     
-    # Duration is always 10 seconds (5 before + 5 after)
-    duration_seconds = 10
+    # Duration is 30 seconds (15 before + 15 after)
+    duration_seconds = 30
     half_duration = duration_seconds // 2
 
     # Calculate start and end times
