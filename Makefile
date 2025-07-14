@@ -77,7 +77,7 @@ buffer-capture:  ## Extract a clip from the rolling buffer and upload to GCS. Us
 	export GOOGLE_CLOUD_PROJECT=pickle-terraform-dev && \
 	export GCS_BUCKET_NAME=customer1-videos && \
 	source venv/bin/activate && \
-	PYTHONPATH=./src python extract_clip.py "$$EVENT_TIME" \
+	PYTHONPATH=./src python src/extract_clip.py "$$EVENT_TIME" \
 '
 
 %:
