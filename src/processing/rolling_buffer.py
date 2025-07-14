@@ -87,6 +87,32 @@ class RollingBuffer:
             raise RuntimeError(f"ffmpeg failed: {result.stderr.decode()}")
         return output_path
 
+    def _cleanup_old_segments(self):
+        """Remove segments that are older than the buffer duration."""
+        segment_tuples = self.get_segment_times()
+        if not segment_tuples:
+            return
+
+        # Sort by timestamp
+        segment_tuples.sort()  # This sorts by timestamp since it's the first element of each tuple
+        
+        # Calculate the total duration of segments
+        total_duration = 0
+        segments_to_keep = []
+        
+        # Work backwards from newest to oldest
+        for timestamp, filename in reversed(segment_tuples):
+            total_duration += self.segment_duration
+            if total_duration <= self.buffer_duration:
+                segments_to_keep.append(filename)
+            else:
+                # Remove this segment since it's outside our buffer window
+                try:
+                    full_path = os.path.join(self.buffer_dir, filename)
+                    os.remove(full_path)
+                except Exception as e:
+                    print(f"Error removing old segment {filename}: {e}")
+
     def start_recording(self):
         """Continuously records 1s segments from the Reolink stream."""
         settings = Settings()
@@ -110,6 +136,9 @@ class RollingBuffer:
         print(f"Rolling buffer started: {self.buffer_duration} sec, {self.segment_duration}s segments, {fps} FPS")
         try:
             while True:
+                # Clean up old segments before recording a new one
+                self._cleanup_old_segments()
+                
                 start_time = datetime.now()
                 fname = os.path.join(self.buffer_dir, f"segment_{start_time.strftime('%Y%m%d_%H%M%S')}.mp4")
                 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -121,6 +150,7 @@ class RollingBuffer:
                         break
                     out.write(frame)
                 out.release()
+                
                 # Sleep to align with real time
                 elapsed = (datetime.now() - start_time).total_seconds()
                 if elapsed < self.segment_duration:
