@@ -66,9 +66,9 @@ buffer-disable: ## Disable rolling buffer from starting on boot
 	sudo systemctl disable rolling_buffer.service
 
 buffer-install-service:  ## Install and reload the rolling buffer systemd service
-	chmod +x scripts/run_rolling_buffer.sh
-	sudo cp rolling_buffer.service /etc/systemd/system/rolling_buffer.service
-	sudo systemctl daemon-reload
+	@chmod +x scripts/run_rolling_buffer.sh
+	@sudo cp rolling_buffer.service /etc/systemd/system/rolling_buffer.service
+	@sudo systemctl daemon-reload
 
 buffer-capture:  ## Extract a clip from the rolling buffer and upload to GCS. Usage: make buffer-capture 2025-07-07T15:00:00 [GCS_BUCKET_NAME=bucket] [GOOGLE_CLOUD_PROJECT=project]
 	@bash -c ' \
