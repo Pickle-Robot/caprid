@@ -70,12 +70,12 @@ buffer-install-service:  ## Install and reload the rolling buffer systemd servic
 	sudo cp rolling_buffer.service /etc/systemd/system/rolling_buffer.service
 	sudo systemctl daemon-reload
 
-buffer-capture:  ## Extract a clip from the rolling buffer and upload to GCS. Usage: make buffer-capture 2025-07-07T15:00:00
+buffer-capture:  ## Extract a clip from the rolling buffer and upload to GCS. Usage: make buffer-capture 2025-07-07T15:00:00 [GCS_BUCKET_NAME=bucket] [GOOGLE_CLOUD_PROJECT=project]
 	@bash -c ' \
 	EVENT_TIME="$(word 2,$(MAKECMDGOALS))"; \
-	if [ -z "$$EVENT_TIME" ]; then echo "Usage: make buffer-capture <EVENT_TIME:YYYY-MM-DDTHH:MM:SS>"; exit 1; fi; \
-	export GOOGLE_CLOUD_PROJECT=pickle-terraform-dev && \
-	export GCS_BUCKET_NAME=customer1-videos && \
+	if [ -z "$$EVENT_TIME" ]; then echo "Usage: make buffer-capture <EVENT_TIME:YYYY-MM-DDTHH:MM:SS> [GCS_BUCKET_NAME=bucket] [GOOGLE_CLOUD_PROJECT=project]"; exit 1; fi; \
+	export GOOGLE_CLOUD_PROJECT=$${GOOGLE_CLOUD_PROJECT:-pickle-devops-dev} && \
+	export GCS_BUCKET_NAME=$${GCS_BUCKET_NAME:-caprid-videos-demo} && \
 	source venv/bin/activate && \
 	PYTHONPATH=./src python src/extract_clip.py "$$EVENT_TIME" \
 '
