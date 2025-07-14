@@ -7,7 +7,7 @@ from stream.reolink_client import ReolinkClient
 from config.settings import Settings
 
 class RollingBuffer:
-    def __init__(self, buffer_dir="/home/pickle/src/pickle/caprid/rolling_buffer", segment_duration=1, buffer_duration=600):
+    def __init__(self, buffer_dir="/home/pickle/src/pickle/caprid/rolling_buffer", segment_duration=1, buffer_duration=900):
         """
         Args:
             buffer_dir (str): Directory where segments are stored.
@@ -160,11 +160,3 @@ class RollingBuffer:
 
 if __name__ == "__main__":
     RollingBuffer().start_recording()
-
-# Example usage:
-# from processing.rolling_buffer import RollingBuffer
-# buffer = RollingBuffer()
-# buffer.start_recording()  # Run in a background process/thread
-# # To extract a clip:
-# dt = datetime.now() - timedelta(seconds=30)  # 30 seconds ago
-# buffer.extract_clip(dt, duration=10, output_path="clip.mp4")
