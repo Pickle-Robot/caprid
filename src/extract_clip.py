@@ -67,7 +67,7 @@ if __name__ == "__main__":
         print("Invalid center_time format. Use YYYY-MM-DDTHH:MM:SS")
         usage()
     
-    duration_seconds = 20
+    duration_seconds = 21 # we prefer a multiple of 3, but we can round if not.
     # Change distribution to 1/3 before and 2/3 after
     before_duration = duration_seconds // 3  # 1/3 of duration before
     after_duration = duration_seconds - before_duration  # 2/3 of duration after
