@@ -6,6 +6,7 @@ help:	## Show this help
 install:	## Install dependencies and setup
 	@chmod +x scripts/install.sh
 	@./scripts/install.sh
+	@make buffer-install-service
 
 run:	## Run the application  
 	@chmod +x scripts/run.sh
@@ -17,7 +18,7 @@ capture-cloud:	## Capture 10 seconds of video and upload to GCS
 	export GOOGLE_CLOUD_PROJECT=pickle-terraform-dev && \
 	export GCS_BUCKET_NAME=customer1-videos && \
 	source venv/bin/activate && \
-	PYTHONPATH=. python scripts/capture_10_seconds_cloud.py \
+	PYTHONPATH=./src python scripts/capture_10_seconds_cloud.py \
 	'
 
 run-recording:	## Run with recording examples
@@ -71,7 +72,7 @@ buffer-capture:  ## Extract a clip from the rolling buffer and upload to GCS. Us
 	export GOOGLE_CLOUD_PROJECT=pickle-terraform-dev && \
 	export GCS_BUCKET_NAME=customer1-videos && \
 	source venv/bin/activate && \
-	PYTHONPATH=. python src/extract_clip.py "$$EVENT_TIME" \
+	PYTHONPATH=./src python extract_clip.py "$$EVENT_TIME" \
 '
 
 %:

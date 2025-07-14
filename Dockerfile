@@ -25,4 +25,4 @@ COPY . .
 # Create necessary directories
 RUN mkdir -p output logs
 
-CMD ["python", "-m", "src.main"]
+CMD ["python", "-m", "main"]

@@ -162,7 +162,7 @@ if __name__ == "__main__":
     RollingBuffer().start_recording()
 
 # Example usage:
-# from src.processing.rolling_buffer import RollingBuffer
+# from processing.rolling_buffer import RollingBuffer
 # buffer = RollingBuffer()
 # buffer.start_recording()  # Run in a background process/thread
 # # To extract a clip:

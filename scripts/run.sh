@@ -34,6 +34,6 @@ echo "Press Ctrl+C to stop"
 echo "Press 'q' in video window to quit"
 echo ""
 
-python -m src.main
+PYTHONPATH=./src python -m main
 
 echo "👋 Application stopped"

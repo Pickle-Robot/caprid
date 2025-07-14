@@ -25,4 +25,4 @@ watchmedo auto-restart \
     --patterns="*.py" \
     --recursive \
     --signal SIGTERM \
-    python -- -m src.main
+    PYTHONPATH=./src python -- -m main

@@ -1,6 +1,5 @@
 import sys
 import os
-import re
 import time
 from datetime import datetime, timedelta
 from processing.rolling_buffer import RollingBuffer

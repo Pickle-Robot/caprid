@@ -13,8 +13,8 @@ from datetime import datetime, timedelta
 import tempfile
 import os
 
-from src.stream.stream_handler import StreamHandler
-from src.stream.reolink_client import ReolinkClient
+from stream.stream_handler import StreamHandler
+from stream.reolink_client import ReolinkClient
 
 
 class TestStreamHandler(unittest.TestCase):

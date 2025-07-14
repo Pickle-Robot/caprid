@@ -8,8 +8,8 @@ import os
 import cv2
 import subprocess
 from datetime import datetime
-from src.config.settings import Settings
-from src.stream.reolink_client import ReolinkClient
+from config.settings import Settings
+from stream.reolink_client import ReolinkClient
 
 def setup_logging():
     logging.basicConfig(
