@@ -52,9 +52,9 @@ buffer-stop:   ## Stop the rolling buffer service
 	sudo systemctl stop rolling_buffer.service
 
 buffer-restart: ## Restart the rolling buffer service
-	echo "🔄 Restarting rolling buffer service..."
-	sudo systemctl restart rolling_buffer.service
-	echo "✅ Service restarted"
+	@echo "🔄 Restarting rolling buffer service..."
+	@sudo systemctl restart rolling_buffer.service
+	@echo "✅ Service restarted"
 
 buffer-status: ## Show status of the rolling buffer service
 	- sudo systemctl status rolling_buffer.service
