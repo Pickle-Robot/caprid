@@ -22,7 +22,7 @@ def upload_to_gcs(local_path, bucket_name, destination_blob_name):
 
 def usage():
     print("Usage: python scripts/extract_clip.py <center_time:YYYY-MM-DDTHH:MM:SS> [duration_in_seconds]")
-    print("The provided time will be the center of the clip.")
+    print("The provided time (when the triage event occurs) will be the center of the clip.")
     print(f"Note: Maximum extractable duration is {max_duration//60} minutes ({max_duration} seconds).")
     sys.exit(1)
 
